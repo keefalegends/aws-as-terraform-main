@@ -65,6 +65,15 @@ resource "aws_eip" "nat-eip" {
   domain = "vpc"
 }
 
+resource "aws_nat_gateway" "techno-nat" {
+  allocation_id = aws_eip.nat-eip.id
+  subnet_id     = aws_subnet.public-subnet-1.id
+
+  tags = {
+    Name = "techno-nat"
+  }
+}
+
 #
 #ROUTE-TABLE
 resource "aws_route_table" "public-rt" {
@@ -97,6 +106,11 @@ resource "aws_route_table" "private-rt" {
   route {
     cidr_block = aws_vpc.techno-keefa.cidr_block
     gateway_id = "local"
+  }
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.techno-nat.id
   }
 
   tags = {
