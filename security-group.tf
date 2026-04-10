@@ -12,7 +12,7 @@ resource "aws_security_group" "lbsg" {
 
 resource "aws_vpc_security_group_ingress_rule" "allow-http" {
   security_group_id = aws_security_group.lbsg.id
-  cidr_ipv4         = aws_vpc.techno-keefa.cidr_block
+  cidr_ipv4         = "0.0.0.0/0"
   from_port         = 80
   ip_protocol       = "TCP"
   to_port           = 80
@@ -20,7 +20,7 @@ resource "aws_vpc_security_group_ingress_rule" "allow-http" {
 
 resource "aws_vpc_security_group_ingress_rule" "allow-https" {
   security_group_id = aws_security_group.lbsg.id
-  cidr_ipv4         = aws_vpc.techno-keefa.cidr_block
+  cidr_ipv4         = "0.0.0.0/0"
   from_port         = 443
   ip_protocol       = "TCP"
   to_port           = 443

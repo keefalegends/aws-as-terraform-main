@@ -1,6 +1,7 @@
 resource "aws_vpc" "techno-keefa" {
-  cidr_block       = "10.0.0.0/16"
-  instance_tenancy = "default"
+  cidr_block                       = "25.1.0.0/16"
+  instance_tenancy                 = "default"
+  assign_generated_ipv6_cidr_block = true
 
   tags = {
     Name = "techno-keefa-vpc"
@@ -20,8 +21,11 @@ resource "aws_internet_gateway" "techno-igw" {
 #
 #SUBNET
 resource "aws_subnet" "public-subnet-1" {
-  vpc_id     = aws_vpc.techno-keefa.id
-  cidr_block = "10.0.0.0/24"
+  vpc_id                          = aws_vpc.techno-keefa.id
+  cidr_block                      = "25.1.0.0/24"
+  ipv6_cidr_block                 = cidrsubnet(aws_vpc.techno-keefa.ipv6_cidr_block, 8, 1)
+  assign_ipv6_address_on_creation = true
+  map_public_ip_on_launch         = true
 
   tags = {
     Name = "public-subnet-1"
@@ -29,8 +33,11 @@ resource "aws_subnet" "public-subnet-1" {
 }
 
 resource "aws_subnet" "public-subnet-2" {
-  vpc_id     = aws_vpc.techno-keefa.id
-  cidr_block = "10.0.1.0/24"
+  vpc_id                          = aws_vpc.techno-keefa.id
+  cidr_block                      = "25.1.2.0/24"
+  ipv6_cidr_block                 = cidrsubnet(aws_vpc.techno-keefa.ipv6_cidr_block, 8, 2)
+  assign_ipv6_address_on_creation = true
+  map_public_ip_on_launch         = true
 
   tags = {
     Name = "public-subnet-2"
@@ -38,8 +45,10 @@ resource "aws_subnet" "public-subnet-2" {
 }
 
 resource "aws_subnet" "private-subnet-1" {
-  vpc_id     = aws_vpc.techno-keefa.id
-  cidr_block = "10.0.2.0/24"
+  vpc_id                          = aws_vpc.techno-keefa.id
+  cidr_block                      = "25.1.1.0/24"
+  ipv6_cidr_block                 = cidrsubnet(aws_vpc.techno-keefa.ipv6_cidr_block, 8, 3)
+  assign_ipv6_address_on_creation = true
 
   tags = {
     Name = "private-subnet-1"
@@ -47,11 +56,28 @@ resource "aws_subnet" "private-subnet-1" {
 }
 
 resource "aws_subnet" "private-subnet-2" {
-  vpc_id     = aws_vpc.techno-keefa.id
-  cidr_block = "10.0.3.0/24"
+  vpc_id                          = aws_vpc.techno-keefa.id
+  cidr_block                      = "25.1.3.0/24"
+  ipv6_cidr_block                 = cidrsubnet(aws_vpc.techno-keefa.ipv6_cidr_block, 8, 4)
+  assign_ipv6_address_on_creation = true
 
   tags = {
     Name = "private-subnet-2"
+  }
+}
+
+#
+# NAT GATEWAY
+resource "aws_eip" "nat-eip" {
+  domain = "vpc"
+}
+
+resource "aws_nat_gateway" "techno-nat" {
+  allocation_id = aws_eip.nat-eip.id
+  subnet_id     = aws_subnet.public-subnet-1.id
+
+  tags = {
+    Name = "techno-nat"
   }
 }
 
@@ -61,8 +87,13 @@ resource "aws_route_table" "public-rt" {
   vpc_id = aws_vpc.techno-keefa.id
 
   route {
-    cidr_block = "10.0.0.0/16"
+    cidr_block = aws_vpc.techno-keefa.cidr_block
     gateway_id = "local"
+  }
+
+  route {
+    ipv6_cidr_block = "::/0"
+    gateway_id      = aws_internet_gateway.techno-igw.id
   }
 
   route {
@@ -80,14 +111,19 @@ resource "aws_route_table" "private-rt" {
   vpc_id = aws_vpc.techno-keefa.id
 
   route {
-    cidr_block = "10.0.0.0/16"
+    cidr_block = aws_vpc.techno-keefa.cidr_block
     gateway_id = "local"
   }
-  
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.techno-nat.id
+  }
+
   tags = {
     Name = "private-rt"
   }
-  
+
 }
 
 resource "aws_route_table_association" "pubasoc1" {
