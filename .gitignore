@@ -23,3 +23,6 @@ override.tf.json
 # CLI config files
 .terraformrc
 terraform.rc
+
+#calculator
+.deployment/calculator
