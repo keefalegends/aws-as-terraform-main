@@ -1,4 +1,4 @@
-# Machine Learning Using Terraform as Infrastucture Automation
+# Machine Learning Using Terraform as Automation
 
 This repository contains the Infrastructure as Code (Terraform) and Kubernetes manifests for a resilient, scalable, and automated image processing pipeline on AWS.
 
