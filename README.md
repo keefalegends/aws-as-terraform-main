@@ -63,5 +63,4 @@ The system is designed with a decoupled, event-driven architecture combining ser
 All resources follow the pattern: `techno-<service>-pati-keefa`
 
 ## 👤 Author
-- **Location**: Pati
 - **Name**: Keefa
